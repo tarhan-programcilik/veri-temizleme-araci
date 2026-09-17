@@ -128,11 +128,25 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
             )
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
 
-        # Demo Filigranı / Attribution Satırı
+        # Demo Filigranı / Attribution Banner Satırı
+        num_cols = len(df.columns)
         last_row = len(df) + 3
+        
+        worksheet.merge_cells(start_row=last_row, start_column=1, end_row=last_row, end_column=num_cols)
         watermark_cell = worksheet.cell(row=last_row, column=1)
-        watermark_cell.value = "⚠️ Portfolio Demo Sample - Capped at 200 rows | Created by Tarhan Programcılık (Available for hire on Upwork)"
-        watermark_cell.font = Font(name="Calibri", size=10, italic=True, color="64748B", bold=True)
+        watermark_cell.value = "⚠️ Portfolio Demo Sample (Capped at 200 rows) | Created by Tarhan Programcılık (Available for hire on Upwork)"
+        watermark_cell.font = Font(name="Calibri", size=10, bold=True, color="1E3A8A")
+        watermark_cell.alignment = Alignment(horizontal="center", vertical="center")
+        watermark_cell.fill = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
+
+        thin_border = Border(
+            top=Side(style='thin', color='CBD5E1'),
+            bottom=Side(style='thin', color='CBD5E1'),
+            left=Side(style='thin', color='CBD5E1'),
+            right=Side(style='thin', color='CBD5E1')
+        )
+        for c in range(1, num_cols + 1):
+            worksheet.cell(row=last_row, column=c).border = thin_border
 
     return output.getvalue()
 

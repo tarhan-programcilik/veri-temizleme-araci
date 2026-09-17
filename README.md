@@ -5,7 +5,7 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=tarhan-programcilik/veri-temizleme-araci&branch=main&mainModule=app.py)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Upwork](https://img.shields.io/badge/Upwork-Available%20for%20Hire-14A800?logo=upwork&logoColor=white)](https://www.upwork.com)
+[![Upwork](https://img.shields.io/badge/Upwork-Available%20for%20Hire-14A800?logo=upwork&logoColor=white)](https://www.upwork.com/freelancers/~01224fc7e34b23b75e?mp_source=share)
 
 **An interactive no-code data preparation & exploratory data analysis (EDA) web application built for client portfolio showcase.**
 
@@ -73,7 +73,7 @@ Need custom data solutions, end-to-end automations, or internal company tools?
 - 🤖 **AI & LLM Integration**: LangChain, LlamaIndex, OpenAI API, Anthropic, Gemini API
 - 🗄️ **Database Engineering**: PostgreSQL, MySQL, Supabase, BigQuery, Snowflake
 
-👉 **[Contact Me on Upwork to Discuss Your Project](https://www.upwork.com)**
+👉 **[Contact Me on Upwork to Discuss Your Project](https://www.upwork.com/freelancers/~01224fc7e34b23b75e?mp_source=share)**
 
 ---
 

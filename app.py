@@ -17,7 +17,7 @@ st.set_page_config(
 # Kısıtlama Sabitleri (Portfolio Demo Limits)
 MAX_DEMO_ROWS = 200
 MAX_FILE_SIZE_MB = 2.0
-UPWORK_PROFILE_URL = "https://www.upwork.com"  # Profil linkinizi buraya güncelleyebilirsiniz
+UPWORK_PROFILE_URL = "https://www.upwork.com/freelancers/~01224fc7e34b23b75e?mp_source=share"
 
 # Özel CSS ile Modern Portföy Görünümü
 st.markdown("""

@@ -3,18 +3,23 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-# Page Configuration
+# Sayfa Yapılandırması
 st.set_page_config(
-    page_title="DataCleaner Studio 📊",
+    page_title="DataCleaner Studio 📊 (Portfolio Demo)",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# Kısıtlama Sabitleri (Portfolio Demo Limits)
+MAX_DEMO_ROWS = 200
+MAX_FILE_SIZE_MB = 2.0
+UPWORK_PROFILE_URL = "https://www.upwork.com"  # Profil linkinizi buraya güncelleyebilirsiniz
+
+# Özel CSS ile Modern Portföy Görünümü
 st.markdown("""
 <style>
     .main-header {
@@ -26,32 +31,63 @@ st.markdown("""
     .sub-header {
         font-size: 1rem;
         color: #64748B;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.2rem;
     }
-    .metric-card {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 12px 16px;
+    .hire-card {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .hire-card h4 {
+        color: #FFFFFF !important;
+        margin-top: 0;
+        margin-bottom: 8px;
+    }
+    .hire-card p {
+        color: #E0E7FF;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+    }
+    .demo-badge {
+        background-color: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FCD34D;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    .locked-card {
+        background-color: #FFF1F2;
+        border: 1px solid #FECDD3;
+        border-radius: 10px;
+        padding: 24px;
         text-align: center;
-    }
-    .stAlert {
-        border-radius: 8px;
+        margin: 20px 0;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 def init_session_state():
-    """Initializes session state variables."""
+    """Oturum değişkenlerini tanımlar."""
     if "df" not in st.session_state:
         st.session_state.df = None
     if "raw_df" not in st.session_state:
         st.session_state.raw_df = None
     if "history_log" not in st.session_state:
         st.session_state.history_log = []
-    if "file_id" not in st.session_state:
-        st.session_state.file_id = None
+    if "active_file_id" not in st.session_state:
+        st.session_state.active_file_id = None
+    if "file_trial_used" not in st.session_state:
+        st.session_state.file_trial_used = False
+    if "is_row_capped" not in st.session_state:
+        st.session_state.is_row_capped = False
     if "lang" not in st.session_state:
         st.session_state.lang = "en"
 
@@ -60,19 +96,19 @@ init_session_state()
 
 
 def log_action(message: str):
-    """Appends an action with timestamp to the audit history."""
+    """Yapılan işlemi zaman damgasıyla kaydeder."""
     timestamp = datetime.now().strftime("%H:%M:%S")
     st.session_state.history_log.append(f"[{timestamp}] {message}")
 
 
 def to_excel_bytes(df: pd.DataFrame) -> bytes:
-    """Exports DataFrame to professionally styled Excel (.xlsx) bytes."""
+    """openpyxl ile stillendirilmiş ve Upwork portföy filigranlı Excel oluşturur."""
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Clean_Data')
         worksheet = writer.sheets['Clean_Data']
 
-        # Header style (Navy blue fill with bold white typography)
+        # Başlık biçimlendirmesi
         header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
         header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
         header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
@@ -83,7 +119,7 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
             cell.font = header_font
             cell.alignment = header_alignment
 
-        # Auto-fit column widths
+        # Otomatik sütun genişliği
         for col_idx, col in enumerate(df.columns, 1):
             col_letter = get_column_letter(col_idx)
             max_len = max(
@@ -92,16 +128,22 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
             )
             worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
 
+        # Demo Filigranı / Attribution Satırı
+        last_row = len(df) + 3
+        watermark_cell = worksheet.cell(row=last_row, column=1)
+        watermark_cell.value = "⚠️ Portfolio Demo Sample - Capped at 200 rows | Created by Tarhan Programcılık (Available for hire on Upwork)"
+        watermark_cell.font = Font(name="Calibri", size=10, italic=True, color="64748B", bold=True)
+
     return output.getvalue()
 
 
 # -------------------------------------------------------------
-# SIDEBAR - CONFIGURATION & FILE UPLOAD
+# KENAR ÇUBUĞU (SIDEBAR) - DİL, UPWORK CTA & KISITLI DOSYA YÜKLEME
 # -------------------------------------------------------------
 with st.sidebar:
-    st.markdown("## 🌐 Language / Dil")
+    # Dil Seçimi
     lang_choice = st.selectbox(
-        "Choose Language",
+        "Language / Dil",
         ["English (EN)", "Türkçe (TR)"],
         index=0 if st.session_state.lang == "en" else 1,
         label_visibility="collapsed"
@@ -109,76 +151,177 @@ with st.sidebar:
     is_tr = "TR" in lang_choice
     st.session_state.lang = "tr" if is_tr else "en"
 
-    st.divider()
+    # Upwork "Hire Me" Kartı
+    st.markdown(f"""
+    <div class="hire-card">
+        <h4>💼 {"Upwork Profilim" if is_tr else "Hire Me on Upwork"}</h4>
+        <p>{"İşletmeniz için özel veri işleme hatları (ETL), Python otomasyonları, Streamlit panelleri veya yapay zeka entegrasyonu mu arıyorsunuz?" if is_tr else "Looking for custom data pipelines, automated ETL workflows, custom Streamlit dashboards, or AI solutions?"}</p>
+        <a href="{UPWORK_PROFILE_URL}" target="_blank" style="text-decoration:none;">
+            <button style="width:100%; background-color:#10B981; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                {"👉 Upwork'ten İletişime Geçin" if is_tr else "👉 Contact Me on Upwork"}
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f'<span class="demo-badge">🔒 {"PORTFÖY VİTRİN SÜRÜMÜ" if is_tr else "PORTFOLIO DEMO EDITION"}</span>', unsafe_allow_html=True)
 
     st.header("📂 " + ("Dosya Yükleme" if is_tr else "Upload Dataset"))
+    st.caption(("⚡ Demo: 1 dosya deneme hakkı, maks 2MB, 200 satır." if is_tr else "⚡ Demo limits: 1 dataset per session, max 2MB, up to 200 rows."))
+
     uploaded_file = st.file_uploader(
         "Excel (.xlsx, .xls) / CSV (.csv)" if not is_tr else "Excel veya CSV dosyası seçin",
         type=["csv", "xlsx", "xls"],
-        help="Max 200MB supported" if not is_tr else "Maksimum 200MB desteklenir."
+        help="Portfolio showcase limit: 2MB" if not is_tr else "Portföy demo sınırı: Maksimum 2MB"
     )
 
     if uploaded_file is not None:
-        file_identifier = f"{uploaded_file.name}_{uploaded_file.size}"
-        
-        # Fresh load on new file upload
-        if st.session_state.file_id != file_identifier:
-            st.session_state.file_id = file_identifier
-            st.session_state.history_log = []
-            
-            try:
-                if uploaded_file.name.endswith('.csv'):
-                    st.subheader("CSV Settings" if not is_tr else "CSV Ayarları")
-                    encoding_opt = st.selectbox(
-                        "Encoding" if not is_tr else "Karakter Kodlaması",
-                        ["utf-8", "utf-8-sig", "latin1", "iso-8859-9", "cp1254"]
-                    )
-                    sep_opt = st.selectbox(
-                        "Delimiter" if not is_tr else "Ayraç (Delimiter)",
-                        [",", ";", "\\t", "|"]
-                    )
-                    df_loaded = pd.read_csv(uploaded_file, sep=sep_opt, encoding=encoding_opt)
-                else:
-                    excel_file = pd.ExcelFile(uploaded_file)
-                    sheet_names = excel_file.sheet_names
-                    selected_sheet = st.selectbox("Worksheet" if not is_tr else "Çalışma Sayfası (Sheet)", sheet_names)
-                    df_loaded = pd.read_excel(uploaded_file, sheet_name=selected_sheet)
-                
-                st.session_state.raw_df = df_loaded.copy()
-                st.session_state.df = df_loaded.copy()
-                log_action(f"Loaded '{uploaded_file.name}' ({len(df_loaded)} rows, {len(df_loaded.columns)} columns).")
-                st.success("File uploaded successfully!" if not is_tr else "Dosya başarıyla yüklendi!")
-            except Exception as e:
-                st.error(f"Error reading file: {str(e)}" if not is_tr else f"Dosya okunurken bir hata oluştu: {str(e)}")
+        file_size_mb = uploaded_file.size / (1024 * 1024)
+        current_file_id = f"{uploaded_file.name}_{uploaded_file.size}"
 
-        if st.session_state.df is not None:
+        # 1. Dosya Boyutu Kısıtı (Max 2MB)
+        if file_size_mb > MAX_FILE_SIZE_MB:
+            msg = f"❌ Dosya boyutu ({file_size_mb:.2f} MB) demo sınırını ({MAX_FILE_SIZE_MB} MB) aşıyor. Lütfen daha küçük bir demo dosyası yükleyin." if is_tr else f"❌ File size ({file_size_mb:.2f} MB) exceeds the 2MB demo threshold. Please test with a smaller dataset."
+            st.error(msg)
+            st.stop()
+
+        # 2. Tek Seferlik Deneme Kısıtı (Tek Dosya Hakkı)
+        if st.session_state.file_trial_used and st.session_state.active_file_id != current_file_id:
+            st.session_state.quota_blocked = True
+        else:
+            st.session_state.quota_blocked = False
+
+            # Yeni ve ilk dosya ise oturumu başlat
+            if st.session_state.active_file_id != current_file_id:
+                st.session_state.active_file_id = current_file_id
+                st.session_state.file_trial_used = True
+                st.session_state.history_log = []
+
+                try:
+                    if uploaded_file.name.endswith('.csv'):
+                        encoding_opt = st.selectbox(
+                            "Encoding" if not is_tr else "Karakter Kodlaması",
+                            ["utf-8", "utf-8-sig", "latin1", "iso-8859-9", "cp1254"]
+                        )
+                        sep_opt = st.selectbox(
+                            "Delimiter" if not is_tr else "Ayraç (Delimiter)",
+                            [",", ";", "\\t", "|"]
+                        )
+                        df_loaded = pd.read_csv(uploaded_file, sep=sep_opt, encoding=encoding_opt)
+                    else:
+                        excel_file = pd.ExcelFile(uploaded_file)
+                        sheet_names = excel_file.sheet_names
+                        selected_sheet = st.selectbox("Worksheet" if not is_tr else "Çalışma Sayfası (Sheet)", sheet_names)
+                        df_loaded = pd.read_excel(uploaded_file, sheet_name=selected_sheet)
+
+                    # 3. Satır Sınırı Kısıtı (Max 200 Satır)
+                    if len(df_loaded) > MAX_DEMO_ROWS:
+                        df_loaded = df_loaded.iloc[:MAX_DEMO_ROWS].copy()
+                        st.session_state.is_row_capped = True
+                        log_action(f"Demo Mode: Dataset capped at first {MAX_DEMO_ROWS} rows for showcase.")
+                    else:
+                        st.session_state.is_row_capped = False
+
+                    st.session_state.raw_df = df_loaded.copy()
+                    st.session_state.df = df_loaded.copy()
+                    log_action(f"Loaded '{uploaded_file.name}' ({len(df_loaded)} rows, {len(df_loaded.columns)} columns).")
+                    st.success("File loaded successfully!" if not is_tr else "Dosya başarıyla yüklendi!")
+                except Exception as e:
+                    st.error(f"Error reading file: {str(e)}" if not is_tr else f"Dosya okunurken bir hata oluştu: {str(e)}")
+
+        if st.session_state.df is not None and not st.session_state.get("quota_blocked", False):
             st.divider()
             st.subheader("🔄 " + ("Hızlı İşlemler" if is_tr else "Quick Actions"))
             if st.button("⏪ " + ("Orijinal Veriye Sıfırla" if is_tr else "Reset to Original"), use_container_width=True):
                 st.session_state.df = st.session_state.raw_df.copy()
-                log_action("Reset dataset to original imported version." if not is_tr else "Veri seti ilk yüklenen haline sıfırlandı.")
+                log_action("Reset dataset to original imported state." if not is_tr else "Veri seti ilk haline sıfırlandı.")
                 st.rerun()
 
             st.caption(f"Active File: **{uploaded_file.name}**" if not is_tr else f"Aktif Dosya: **{uploaded_file.name}**")
 
+
 # -------------------------------------------------------------
-# MAIN HEADER
+# ANA EKRAN
 # -------------------------------------------------------------
-header_title = "📊 DataCleaner Studio" if not is_tr else "📊 Excel & CSV Veri Temizleme ve Özetleme Aracı"
-header_sub = "Profile, clean, transform, and export Excel & CSV datasets with ease." if not is_tr else "Verilerinizi yükleyin, hızlıca analiz edin, temizleyin ve temiz halini Excel/CSV olarak indirin."
+header_title = "📊 DataCleaner Studio (Portfolio Demo)" if not is_tr else "📊 DataCleaner Studio (Portföy Demosu)"
+header_sub = "Interactive data cleaning & profiling showcase built with Python & Streamlit." if not is_tr else "Python, Streamlit ve openpyxl ile geliştirilmiş veri temizleme ve özetleme vitrini."
 
 st.markdown(f'<div class="main-header">{header_title}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="sub-header">{header_sub}</div>', unsafe_allow_html=True)
 
-if st.session_state.df is None:
-    help_msg = "👈 Please upload an **Excel (.xlsx, .xls)** or **CSV** dataset from the left sidebar to get started." if not is_tr else "👈 Başlamak için lütfen sol taraftaki panelden bir **Excel (.xlsx, .xls)** veya **CSV** dosyası yükleyin."
-    st.info(help_msg)
+# KOTA DOLDU / TEK DOSYA KİLİDİ
+if st.session_state.get("quota_blocked", False):
+    st.markdown(f"""
+    <div class="locked-card">
+        <h2 style="color:#BE123C; margin-top:0;">🔒 {"Demo Deneme Sınırına Ulaşıldı" if is_tr else "Demo Trial Quota Reached"}</h2>
+        <p style="font-size:1.05rem; color:#475569; max-width:700px; margin:0 auto 20px auto;">
+            {"Bu portföy demosunda oturum başına <b>sadece 1 adet dosya deneme hakkı</b> sunulmaktadır. Sınırsız dosya boyutu, toplu veri işleme (batch processing), otomatik ETL hatları veya özel şirket araçları geliştirmek için benimle Upwork üzerinden iletişime geçebilirsiniz!" if is_tr else "This portfolio showcase is limited to <b>1 dataset trial per session</b>. To unlock unlimited processing, automated ETL pipelines, cloud database integrations, or bespoke internal tools, feel free to hire me on Upwork!"}
+        </p>
+        <a href="{UPWORK_PROFILE_URL}" target="_blank" style="text-decoration:none;">
+            <button style="background-color:#1E3A8A; color:white; border:none; padding:12px 28px; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer;">
+                💼 {"Upwork Profilime Git & Projeyi Konuşalım" if is_tr else "Hire Me on Upwork / Discuss Your Project"}
+            </button>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
+
+# Dosya Yüklenmemişse Hoş Geldiniz Ekranı
+if st.session_state.df is None:
+    st.info(
+        "👈 Please upload a sample **Excel (.xlsx)** or **CSV** dataset (max 2MB) from the left sidebar to test the interface." 
+        if not is_tr else 
+        "👈 Arayüzü test etmek için lütfen sol panelden örnek bir **Excel (.xlsx)** veya **CSV** dosyası yükleyin (Maksimum 2MB)."
+    )
+    
+    # Upwork Portföy Bilgilendirme Kartı
+    st.markdown("---")
+    c_info1, c_info2 = st.columns(2)
+    with c_info1:
+        st.markdown("### 🎯 " + ("What This Demo Demonstrates" if not is_tr else "Bu Portföy Demosu Neleri Gösterir?"))
+        if not is_tr:
+            st.markdown("""
+            - **End-to-End Data Cleansing**: Duplicate detection, missing data imputation, outlier filtering (IQR).
+            - **Automated Profiling & EDA**: Column health metrics, data type inference, statistical summaries.
+            - **Production-Ready Python**: Built with pandas, Streamlit, and openpyxl with clean state management.
+            - **Custom Spreadsheet Styling**: Programmatic formatting with branded header styles and auto-fit columns.
+            """)
+        else:
+            st.markdown("""
+            - **Uçtan Uca Veri Temizleme**: Çift kayıt temizliği, eksik veri doldurma, IQR aykırı değer analizi.
+            - **Otomatik Profilleme**: Sütun sağlık metrikleri, veri tipi kontrolü, istatistiksel özetler.
+            - **Üretime Hazır Mimari**: pandas, Streamlit ve openpyxl ile modüler ve oturum güvenli yapı.
+            - **Özel Excel Biçimlendirme**: Otomatik başlık stillendirme ve dinamik sütun genişliği optimizasyonu.
+            """)
+    with c_info2:
+        st.markdown("### 💼 " + ("Hire Me on Upwork" if not is_tr else "Upwork Üzerinden Çalışalım"))
+        if not is_tr:
+            st.markdown("""
+            Need a tailored solution for your company?
+            - Custom Web Dashboards & Internal SaaS Tools
+            - Automated Web Scraping & Data Extraction
+            - ETL & Database Pipelines (PostgreSQL, BigQuery, Snowflake)
+            - AI/LLM App Development (LangChain, OpenAI API)
+            """)
+        else:
+            st.markdown("""
+            Şirketiniz veya projeniz için özel bir geliştirme mi istiyorsunuz?
+            - Özel Web Panelleri ve Dahili Yönetim Araçları
+            - Otomatik Web Kazıma (Scraping) ve Veri Çıkarma
+            - ETL ve Veri Tabanı Entegrasyonları (PostgreSQL, BigQuery vb.)
+            - Yapay Zeka / LLM Uygulama Geliştirme
+            """)
+    st.stop()
+
+# 200 Satır Kısıtı Bildirimi
+if st.session_state.is_row_capped:
+    cap_msg = f"ℹ️ **Portfolio Showcase Notice**: Dataset has been capped at the first **{MAX_DEMO_ROWS} rows** for demo purposes. Full enterprise versions process unlimited rows without restriction." if not is_tr else f"ℹ️ **Portföy Vitrin Bildirimi**: Dosyanız demo amacıyla ilk **{MAX_DEMO_ROWS} satır** ile sınırlandırılmıştır. Tam kurumsal sürümlerde satır sınırı bulunmamaktadır."
+    st.warning(cap_msg)
 
 df = st.session_state.df
 
 # -------------------------------------------------------------
-# MAIN TAB NAVIGATION
+# ANA SEKME YAPISI
 # -------------------------------------------------------------
 tab1_title = "📈 1. Overview & Profiling" if not is_tr else "📈 1. Veri Özeti & Analiz"
 tab2_title = "🧹 2. Data Cleaning" if not is_tr else "🧹 2. Veri Temizleme"
@@ -187,7 +330,7 @@ tab3_title = "💾 3. Export & Download" if not is_tr else "💾 3. Dışa Aktar
 tab_summary, tab_cleaning, tab_export = st.tabs([tab1_title, tab2_title, tab3_title])
 
 # =============================================================
-# TAB 1: OVERVIEW & PROFILING
+# SEKME 1: VERİ ÖZETİ VE PROFİLLEME
 # =============================================================
 with tab_summary:
     st.subheader("📌 " + ("Key Metrics & Dataset Overview" if not is_tr else "Genel Bakış & Temel Metrikler"))
@@ -201,7 +344,7 @@ with tab_summary:
     memory_usage_mb = df.memory_usage(deep=True).sum() / (1024 * 1024)
 
     col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Rows" if not is_tr else "Toplam Satır", f"{total_rows:,}")
+    col1.metric("Rows (Capped)" if (st.session_state.is_row_capped and not is_tr) else ("Toplam Satır (Kısıtlı)" if st.session_state.is_row_capped else ("Rows" if not is_tr else "Toplam Satır")), f"{total_rows:,}")
     col2.metric("Columns" if not is_tr else "Toplam Sütun", total_cols)
     col3.metric("Missing Cells" if not is_tr else "Eksik Değerler", f"{total_missing:,}", f"{missing_pct:.1f}%")
     col4.metric("Duplicates" if not is_tr else "Yinelenen Satırlar", f"{duplicate_rows:,}")
@@ -239,7 +382,6 @@ with tab_summary:
     info_df = pd.DataFrame(col_info)
     st.dataframe(info_df, use_container_width=True)
 
-    # Missing value chart
     null_key = "Null Count" if not is_tr else "Eksik Satır"
     null_pct_key = "Null %" if not is_tr else "Eksiklik Oranı (%)"
     name_key = "Column Name" if not is_tr else "Sütun Adı"
@@ -267,7 +409,7 @@ with tab_summary:
 
 
 # =============================================================
-# TAB 2: DATA CLEANING TOOLS
+# SEKME 2: VERİ TEMİZLEME ARAÇLARI
 # =============================================================
 with tab_cleaning:
     st.subheader("🛠️ " + ("Data Cleaning & Transformation Tools" if not is_tr else "Temizleme & Veri Düzenleme Araçları"))
@@ -505,7 +647,7 @@ with tab_cleaning:
 
 
 # =============================================================
-# TAB 3: EXPORT & DOWNLOAD
+# SEKME 3: DIŞA AKTARMA VE İNDİRME
 # =============================================================
 with tab_export:
     st.subheader("💾 " + ("Download Cleaned Dataset" if not is_tr else "Temizlenmiş Veriyi İndirme"))
@@ -519,11 +661,11 @@ with tab_export:
     # EXCEL EXPORT
     with col_dl1:
         st.markdown("### 📗 Excel (.xlsx)")
-        st.caption("Styled navy headers, bold white text, and auto-fitted columns." if not is_tr else "openpyxl ile stillendirilmiş, otomatik sütun genişlikli dosya.")
+        st.caption("Styled navy headers, bold white text, auto-fitted columns & demo watermark." if not is_tr else "openpyxl ile stillendirilmiş, otomatik sütun genişlikli ve demo filigranlı dosya.")
         with st.spinner("Preparing Excel file..." if not is_tr else "Excel dosyası hazırlanıyor..."):
             excel_data = to_excel_bytes(df)
         
-        default_excel_name = f"cleaned_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        default_excel_name = f"demo_cleaned_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         st.download_button(
             label="📥 Download Excel (.xlsx)" if not is_tr else "📥 Excel (.xlsx) Olarak İndir",
             data=excel_data,
@@ -540,7 +682,7 @@ with tab_export:
         csv_sep = st.selectbox("CSV Delimiter:" if not is_tr else "CSV Ayırıcı Karakter:", [",", ";", "\\t"], index=0)
         
         csv_data = df.to_csv(index=False, sep=csv_sep).encode('utf-8-sig')
-        default_csv_name = f"cleaned_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        default_csv_name = f"demo_cleaned_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         
         st.download_button(
             label="📥 Download CSV (.csv)" if not is_tr else "📥 CSV (.csv) Olarak İndir",

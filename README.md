@@ -1,16 +1,15 @@
-# 📊 DataCleaner Studio
+# 📊 DataCleaner Studio (Portfolio Demo Edition)
 
 <div align="center">
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=tarhan-programcilik/veri-temizleme-araci&branch=main&mainModule=app.py)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458?logo=pandas&logoColor=white)](https://pandas.pydata.org/)
-[![OpenPyXL](https://img.shields.io/badge/OpenPyXL-3.1%2B-brightgreen)](https://openpyxl.readthedocs.io/)
+[![Upwork](https://img.shields.io/badge/Upwork-Available%20for%20Hire-14A800?logo=upwork&logoColor=white)](https://www.upwork.com)
 
-**An intuitive, no-code web application for automated data cleaning, exploratory data analysis (EDA), and professionally styled Excel/CSV exporting.**
+**An interactive no-code data preparation & exploratory data analysis (EDA) web application built for client portfolio showcase.**
 
-[Live Demo](#-live-demo) • [Key Features](#-key-features) • [Quick Start](#-quick-start) • [How to Deploy](#-how-to-deploy-to-streamlit-cloud) • [License](#-license)
+[Live Demo](#-live-demo) • [Key Features](#-key-features) • [Demo Restrictions](#-portfolio-demo-restrictions) • [Hire Me on Upwork](#-hire-me-on-upwork) • [License](#-license)
 
 </div>
 
@@ -18,105 +17,82 @@
 
 ## 🌟 Overview
 
-Working with dirty data is one of the most tedious parts of any analytical workflow. **DataCleaner Studio** eliminates repetitive data preparation tasks by providing a visual, interactive interface to:
-- Inspect and profile raw datasets instantly.
-- Perform robust data cleaning operations without writing boilerplate code.
-- Export clean datasets with professionally styled headers and auto-sized columns.
-- Maintain full auditability with a real-time change log and 1-click reset.
+Working with raw, messy datasets is one of the most time-consuming hurdles in any analytics workflow. **DataCleaner Studio** demonstrates how custom Python & Streamlit applications can automate tedious spreadsheet preparation, cleaning, and reporting tasks for businesses and data teams.
+
+> 💼 **Note**: This repository contains the **Portfolio Showcase Edition**. For enterprise-scale implementations, automated scheduled ETL pipelines, cloud database sync, or custom internal SaaS dashboards, feel free to contact me directly on Upwork!
+
+---
+
+## 🔒 Portfolio Demo Restrictions
+
+To showcase capabilities while preventing unauthorized commercial misuse, this live demo includes deliberate safeguard limits:
+- **1-File Trial Quota**: Users can test and evaluate 1 dataset per session.
+- **200 Rows Cap**: Datasets with more than 200 rows are automatically truncated to the first 200 rows for preview.
+- **2 MB File Size Limit**: Uploads are restricted to 2MB.
+- **Attribution Watermark**: Exported Excel spreadsheets include a demo portfolio signature.
 
 ---
 
 ## ✨ Key Features
 
 ### 1. 📂 Versatile File Ingestion
-- **Excel Support (`.xlsx`, `.xls`)**: Multi-sheet file reader with interactive sheet selection.
-- **CSV Support (`.csv`)**: Configurable delimiter (`,`, `;`, `\t`, `|`) and character encodings (`utf-8`, `utf-8-sig`, `latin1`, `iso-8859-9`, `cp1254`).
+- **Excel (`.xlsx`, `.xls`)**: Multi-sheet file reader with interactive sheet selection.
+- **CSV (`.csv`)**: Configurable delimiter (`,`, `;`, `\t`, `|`) and character encodings (`utf-8`, `utf-8-sig`, `latin1`, `iso-8859-9`, `cp1254`).
 
-### 2. 📈 Instant Data Profiling & Summary
-- **Key Metrics Dashboard**: Row count, column count, total nulls, missing value %, duplicate rows, and deep memory footprint.
-- **Data Preview**: Browse top N, bottom N, random sample, or full dataset.
-- **Column Health Table**: Per-column data types, non-null counts, missing value rates, unique value counts, and first sample values.
-- **Missing Value Distribution**: Interactive bar charts highlighting columns with data gaps.
-- **Statistical EDA**: Comprehensive distribution metrics (`count`, `mean`, `std`, `min`, `IQR`, `max`) for numeric and categorical attributes.
+### 2. 📈 Instant Data Profiling & EDA
+- **Key Metrics Dashboard**: Total rows, columns, null rate %, duplicates, and memory footprint.
+- **Data Preview Modes**: First 10, last 10, random sample, or complete dataset.
+- **Column Health Table**: Types, non-null counts, missing rates, unique value counts, and samples.
+- **Missing Value Distribution**: Interactive visual bar chart showing missing data across all columns.
+- **Statistical Summaries**: Distribution metrics (`count`, `mean`, `std`, `min`, `IQR`, `max`).
 
-### 3. 🧹 Robust Data Cleaning Suite
-- **Duplicate Removal**: Drop duplicate records across all columns or target specific subset columns (preserve first or last record).
-- **Missing Value Handling (Imputation)**:
+### 3. 🧹 Non-Destructive Data Cleaning Suite
+- **Duplicate Removal**: Remove duplicate records across all columns or specific subsets (keep first or last).
+- **Missing Value Management**:
   - Drop missing rows (by `any`, `all`, or target subset).
-  - Smart imputation: **Mean**, **Median**, **Mode**, **Forward-fill (ffill)**, **Backward-fill (bfill)**, or **Custom Constant Value**.
-- **Column Management**:
-  - Remove redundant columns.
-  - Automatic column name normalization (converts to `snake_case`, strips whitespace, cleans non-standard characters).
-  - Rename individual columns on the fly.
-- **Type Casting**: Seamless conversion between Numeric/Float, Integer, String/Text, Datetime, and Categorical types.
+  - Smart imputation: **Mean**, **Median**, **Mode**, **Forward Fill (ffill)**, **Backward Fill (bfill)**, or **Custom Constant Value**.
+- **Column Operations**: Drop redundant columns, auto-normalize headers to `snake_case`, and rename columns on the fly.
+- **Type Casting**: Numeric/Float, Integer, String/Text, Datetime, and Categorical conversions.
 - **String Cleaning**: Strip leading/trailing whitespace, convert text to lowercase, UPPERCASE, or Title Case.
-- **Outlier Detection & Removal**: Filter extreme outliers using **IQR (Interquartile Range)** with customizable multipliers or custom min/max bounds.
-- **Safe Sandbox**: Real-time action logging with a 1-click **"Reset to Original"** fallback.
+- **Outlier Filtering**: Outlier elimination using **IQR (Interquartile Range)** with customizable multipliers or custom min/max bounds.
+- **Action History**: Timestamped audit trail with a 1-click **"Reset to Original"** button.
 
-### 4. 💾 Styled Export & Download
-- **Styled Excel (`.xlsx`)**: Generated with `openpyxl` featuring dark navy header fills, bold white typography, centered alignments, and automated column width adjustments for clean presentation.
+### 4. 💾 Branded Export & Download
+- **Styled Excel (`.xlsx`)**: Generated with `openpyxl` featuring dark navy header fills, bold white typography, centered alignments, and auto-adjusted column widths.
 - **Standardized CSV (`.csv`)**: Export with custom delimiters and `utf-8-sig` encoding (ensures seamless opening in Microsoft Excel without character corruption).
-- **Audit / Change Log**: Comprehensive timestamped audit trail of all performed operations.
 
 ---
 
-## 🚀 Quick Start
+## 💼 Hire Me on Upwork
 
-### Prerequisites
-- Python 3.10 or higher
-- pip package manager
+Need custom data solutions, end-to-end automations, or internal company tools?
 
-### Local Installation
+- 🛠️ **Custom Web Dashboards**: Streamlit, Dash, Gradio, React
+- ⚙️ **Data Pipelines & ETL**: Python, Pandas, Polars, Airflow, Dagster
+- 🌐 **Web Scraping & Automation**: Playwright, Selenium, Beautiful Soup, Scrapy
+- 🤖 **AI & LLM Integration**: LangChain, LlamaIndex, OpenAI API, Anthropic, Gemini API
+- 🗄️ **Database Engineering**: PostgreSQL, MySQL, Supabase, BigQuery, Snowflake
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/tarhan-programcilik/veri-temizleme-araci.git
-   cd veri-temizleme-araci
-   ```
-
-2. **Install required dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Launch the application:**
-   ```bash
-   streamlit run app.py
-   ```
-   The application will automatically open in your default browser at `http://localhost:8501`.
+👉 **[Contact Me on Upwork to Discuss Your Project](https://www.upwork.com)**
 
 ---
 
-## ☁️ How to Deploy to Streamlit Cloud
+## 🚀 Quick Start (Local Run)
 
-Deploying your own instance to **Streamlit Community Cloud** is 100% free and takes less than a minute:
+```bash
+# Clone the repository
+git clone https://github.com/tarhan-programcilik/veri-temizleme-araci.git
+cd veri-temizleme-araci
 
-1. Fork or push this repository to your GitHub account.
-2. Visit **[share.streamlit.io](https://share.streamlit.io)** and log in with your GitHub account.
-3. Click **"New app"** and configure:
-   - **Repository:** `your-username/veri-temizleme-araci`
-   - **Branch:** `main`
-   - **Main file path:** `app.py`
-4. Click **"Deploy!"**. Your app will be live with a public URL accessible worldwide!
+# Install dependencies
+pip install -r requirements.txt
 
----
-
-## 🛠️ Tech Stack
-
-- **Framework**: [Streamlit](https://streamlit.io/) (High-performance web app framework)
-- **Data Wrangling**: [Pandas](https://pandas.pydata.org/) (High-performance data manipulation)
-- **Spreadsheet Engine**: [OpenPyXL](https://openpyxl.readthedocs.io/) (Rich Excel spreadsheet styling & formatting)
-
----
-
-## 🧪 Sample Datasets
-
-The repository includes sample dirty datasets to test features immediately:
-- `sample_data.xlsx` (Excel version with missing entries, duplicates, and outliers)
-- `sample_data.csv` (CSV version with delimiter and whitespace inconsistencies)
+# Run the app
+streamlit run app.py
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+Distributed under the **MIT License** - see [LICENSE](LICENSE) for details.
